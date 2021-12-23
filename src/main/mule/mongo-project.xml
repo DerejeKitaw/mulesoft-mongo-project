@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4761674d-9ab9-4931-9a85-89859d4baf7f" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="7bf382f7-b980-425d-a888-dee94167b1ed" >
+		<mongo:connection-string-connection connectionString="${secure::db.connectionString}" />
+	</mongo:config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="e0c1e3ec-a7ac-4ca3-9d8b-54cd56e1ef84" file="${env}.yaml" key="${key.inc}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="da0eb004-298e-4df4-b2e6-558d01e1533d" file="${env}.yaml" />
+	<flow name="mongo-projectFlow" doc:id="837fda5e-616a-443d-8f54-aa1dc5b9a46d" >
+		<http:listener doc:name="Listener" doc:id="31ebfef2-3320-427a-b9c6-ccd2c601724a" config-ref="HTTP_Listener_config" path="{env}.yaml"/>
+		<mongo:find-documents doc:name="Find documents" doc:id="6604d019-3365-482f-ae4a-3d1d760136ab" config-ref="MongoDB_Config" collectionName="projects" fields=","/>
+		<ee:transform doc:name="Transform Message" doc:id="9a3a3134-08f2-4860-8d81-5db5764e4672" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
